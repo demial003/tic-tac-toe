@@ -17,8 +17,9 @@ const gameBoard = (function () {
     let cell = board[row][col];
     if (cell.getValue() == "") {
       cell.addToken(token);
+      return true;
     } else {
-      console.log("xdd");
+      return false;
     }
   };
 
@@ -37,8 +38,9 @@ const gameBoard = (function () {
   return { getBoard, printBoard, selectCell, reset, init };
 })();
 
-function Player(name) {
+function Player() {
   let token = "";
+  let name = "";
 
   const selectToken = (value) => {
     token = value;
@@ -46,7 +48,13 @@ function Player(name) {
 
   const getToken = () => token;
 
-  return { name, selectToken, getToken };
+  const setName = (newName) => {
+    name = newName;
+  };
+
+  const getName = () => name;
+
+  return { selectToken, getToken, setName, getName };
 }
 
 function Cell() {
@@ -64,7 +72,7 @@ function Cell() {
 const displayController = (function () {
   gameBoard.init();
 
-  const players = [Player("player1"), Player("player2")];
+  const players = [Player(), Player()];
   let board = gameBoard.getBoard();
   let finished = false;
   let draw = false;
@@ -72,9 +80,15 @@ const displayController = (function () {
   players[1].selectToken("o");
   let activePlayer = players[0];
 
+  const setNames = (name1, name2) => {
+    players[0].setName(name1);
+    players[1].setName(name2);
+  };
+
   const reset = () => {
     gameBoard.reset();
     gameBoard.init();
+    finished = false;
     activePlayer = players[0];
     board = gameBoard.getBoard();
   };
@@ -120,7 +134,10 @@ const displayController = (function () {
   };
 
   const check = (obj) => {
-    return obj[0] == 1 && obj[1] == 1 && obj[2] == 1;
+    return (
+      (obj[0] == 1 && obj[1] == 1 && obj[2] == 1) ||
+      (obj[0] == 2 && obj[1] == 1 && obj[2] == 1)
+    );
   };
 
   const checkWin = () => {
@@ -193,40 +210,51 @@ const displayController = (function () {
 
   const getStatus = () => finished;
   const playRound = (row, col) => {
-    gameBoard.selectCell(row, col, activePlayer.getToken());
-    winStatus = checkWin();
-    if (winStatus == true) {
-      // reset();
-      finished = true;
-      return;
-    }
-    if (winStatus == false) {
-      draw = true;
-      return;
-    }
-    if (winStatus == undefined) console.log("xdd");
+    if (gameBoard.selectCell(row, col, activePlayer.getToken())) {
+      winStatus = checkWin();
+      if (winStatus == true) {
+        // reset();
+        finished = true;
+        return;
+      }
+      if (winStatus == false) {
+        draw = true;
+        return;
+      }
+      if (winStatus == undefined) console.log("xdd");
 
-    switchPlayer();
-    printNewRound();
-    console.log(winStatus);
+      switchPlayer();
+      printNewRound();
+      console.log(winStatus);
+    } else {
+      return;
+    }
   };
 
   printNewRound();
 
-  return { playRound, getPlayer, getStatus, reset };
+  return { playRound, getPlayer, getStatus, reset, setNames };
 })();
 
 const ScreenControl = (function () {
   const div = document.getElementById("board");
+  const container = document.getElementById("container");
   const turn = document.getElementById("turn");
+  const btn = document.createElement("button");
+  const submit = document.getElementById("submit");
+  const form = document.querySelector("form");
+  const dialog = document.querySelector("dialog");
+  const close = document.getElementById("close");
+  const mode = document.querySelectorAll(".mode");
+  let player = displayController.getPlayer();
 
   const render = () => {
     const board = gameBoard.getBoard();
-    const player = displayController.getPlayer();
+    player = displayController.getPlayer();
     if (displayController.getStatus()) {
-      turn.textContent = `${player.name} wins`;
+      turn.textContent = `${player.getName()} wins`;
     } else {
-      turn.textContent = `${player.name}'s turn`;
+      turn.textContent = `${player.getName()}'s turn`;
     }
     div.textContent = "";
     board.forEach((row, num) => {
@@ -239,16 +267,59 @@ const ScreenControl = (function () {
         div.appendChild(cellbtn);
       });
     });
+
+    btn.classList.add("reset");
+    btn.textContent = "Restart";
+    container.appendChild(btn);
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    let inp1 = e.target.form[0];
+    let inp2 = e.target.form[1];
+    displayController.setNames(inp1.value, inp2.value);
+    form.style.visibility = "hidden";
+    render();
+  };
+
+  const handleMode = (e) => {
+    alert(e.target.textContent);
+    form.style.visibility = "visible";
+    mode.forEach((btn) => {
+      btn.style.visibility = "hidden";
+    });
   };
 
   const handleClick = (e) => {
     const row = e.target.dataset.row;
     const col = e.target.dataset.col;
     displayController.playRound(row, col);
+    announce();
     render();
   };
 
-  div.addEventListener("click", handleClick);
+  const announce = () => {
+    if (displayController.getStatus()) {
+      const winner = document.getElementById("winner");
+      winner.textContent = `${player.getName()} wins`;
+      dialog.showModal();
+    }
+  };
 
-  render();
+  div.addEventListener("click", handleClick);
+  btn.addEventListener("click", () => {
+    displayController.reset();
+    render();
+  });
+  submit.addEventListener("click", handleSubmit);
+  close.addEventListener("click", () => {
+    dialog.close();
+    displayController.reset();
+    render();
+  });
+  mode.forEach((btn) => {
+    btn.addEventListener("click", handleMode);
+  });
+
+  // render();
 })();

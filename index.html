@@ -11,8 +11,29 @@
 <body>
 
     <div id="container">
+        <div class="modes">
+            <button class="mode">PVP</button>
+            <button class="mode">PVE</button>
+        </div>
+        <div class="form-control">
+            <form action="">
+                <div class="form-row1">
+                    <label for="name">Player1 name</label>
+                    <input type="text" name="name" id="name">
+                </div>
+                <div class="form-row2">
+                    <label for="name">Player2 name</label>
+                    <input type="text" name="name" id="name">
+                    <button id="submit">Enter</button>
+                </div>
+            </form>
+        </div>
         <div id="turn"></div>
         <div id="board"></div>
+        <dialog>
+            <button id="close">close</button>
+            <h1 id="winner"></h1>
+        </dialog>
     </div>
     <script src="script.js"></script>
 </body>

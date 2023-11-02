@@ -5,6 +5,7 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  gap: 15px;
 }
 
 #board {
@@ -14,7 +15,16 @@
   grid-template-columns: repeat(3, 1fr);
 }
 
-button {
+.cell {
   height: 100px;
   width: 100px;
+}
+
+.form-control {
+  display: flex;
+  flex-direction: column;
+}
+
+form {
+  visibility: hidden;
 }
