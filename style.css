@@ -28,3 +28,8 @@
 form {
   visibility: hidden;
 }
+
+.form-row3 {
+  display: flex;
+  justify-content: center;
+}
